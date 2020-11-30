@@ -1,6 +1,5 @@
-# WpfMvvm.Commands
-
-Реализация ICommand общего применения.
+# V.0.0.0.1 [Ещё не опубликован]
+Версия первой публикации дяя темы [Библиотека элементов для реализации WPF MVVM Решений](https://www.cyberforum.ru/wpf-silverlight/thread2738784.html).
 
 В составе пакета:
 1. ExecuteCommandHandler - Делегат метода ICommand.Execute(object)
@@ -15,5 +14,4 @@
 10. RelayCommand - Базовая реализация команды с интерфесом ICommandRaise.
 11. RelayCommand<T> - Производная от RelayCommand реализация команды с интерфесом ICommand<T>.
 12. RelayCommandAction - Производная от RelayCommand реализация команды с интерфесом ICommandAction.
-
 

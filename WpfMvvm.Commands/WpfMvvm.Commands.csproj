@@ -31,7 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>WpfMvvm.Commands.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'NuGet|AnyCPU'">
     <OutputPath>bin\NuGet\</OutputPath>
@@ -55,12 +56,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Interfaces\Delegates.cs" />
+    <Compile Include="Interfaces\ICommandAction.cs" />
+    <Compile Include="Interfaces\ICommandT.cs" />
+    <Compile Include="Interfaces\ICommandRaise.cs" />
+    <Compile Include="RelayCommands\RelayCommandAction.cs" />
+    <Compile Include="RelayCommands\RelayCommandT.cs" />
+    <Compile Include="RelayCommands\RelayCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="WpfMvvm.Commands.ico" />
-    <Resource Include="WpfMvvm.Commands.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
