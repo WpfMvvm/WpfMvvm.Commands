@@ -1,19 +1,32 @@
-﻿namespace WpfMvvm.Commands
+﻿using System;
+using System.Windows.Input;
+
+namespace WpfMvvm.Commands
 {
     /// <summary>Производный от <see cref="RelayCommand"/> класс,
     /// реализующий интерфейс <see cref="ICommandAction"/>.</summary>
-    public class RelayCommandAction : RelayCommand, ICommandAction
+    public class RelayCommandAction : RelayCommand, IRelayCommandAction, IRelayCommand, ICommandAction, ICommandRaise, ICommand
     {
 
-        /// <inheritdoc cref="RelayCommand.CanExecute(object)"/>
+        /// <summary>Метод, который определяет, может ли данная команда выполняться в ее текущем состоянии.</summary>
+        /// <param name="parameter">Команда не требует передачи данных.
+        /// Должно быть присвоено значение null, иначе всегда будет возвращаться <see langword="false"/>.</param>
+        /// <returns> Значение true, если эту команду можно выполнить; в противном случае — значение false.</returns>
+        /// <remarks>После проверки <paramref name="parameter"/> на <see langword="null"/> вызывается метод <see cref="CanExecute()"/>.</remarks>
         public override bool CanExecute(object parameter)
             => parameter == null && CanExecute();
 
-        /// <inheritdoc cref="RelayCommand.Execute(object)"/>
+        /// <summary>Метод, вызываемый при исполнении данной команды</summary>
+        /// <param name="parameter">Команда не требует передачи данных.
+        /// Должно быть присвоено значение null, иначе исключение <see cref="NotNullParameter"/>.</param>
+        /// <exception cref="NotNullParameter">Если <paramref name="parameter"/> != <see langword="null"/>.</exception>
+        /// <remarks>После проверки <paramref name="parameter"/> на <see langword="null"/> вызывается метод <see cref="Execute()"/>.</remarks>
         public override void Execute(object parameter)
         {
-            if (parameter == null)
-                Execute();
+            if (parameter != null)
+                throw NotNullParameter;
+
+            Execute();
         }
 
         /// <summary>Делегат метода исполняющего команду.</summary>
@@ -47,5 +60,11 @@
         public RelayCommandAction(ExecuteCommandActionHandler executeHandler)
             : this(executeHandler, AllTrue)
         { }
+
+        /// <inheritdoc cref="IRelayCommand.ParameterType"/>
+        public override Type ParameterType => null;
+
+        /// <summary>Возникает если в метод <see cref="Execute(object)"/> был передан не <see langword="null"/>.</summary>
+        public static ArgumentException NotNullParameter { get; } = new ArgumentException("Должен быть null.", "parameter");
     }
 }

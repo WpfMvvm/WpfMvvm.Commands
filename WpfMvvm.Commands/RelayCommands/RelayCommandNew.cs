@@ -14,39 +14,47 @@ namespace WpfMvvm.Commands
 
         /// <inheritdoc cref="ICommand.CanExecute(object)"/>>
         public virtual bool CanExecute(object parameter)
-            => canExecute(parameter);
+            => parameter == null && canExecute();
 
         /// <inheritdoc cref="ICommand.Execute(object)"/>>
         public virtual void Execute(object parameter)
-            => execute(parameter);
+        {
+            if (parameter != null)
+                throw NotNullParameter;
+
+            execute();
+        }
+
 
         /// <inheritdoc cref="ICommandRaise.RaiseCanExecuteChanged"/>>
         public virtual void RaiseCanExecuteChanged()
             => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 
         /// <summary>Всегда возвращает <see langword="true"/>.</summary>
-        /// <param name="parameter">Параметр команды. Не используется.</param>
         /// <returns>Всегда <see langword="true"/>.</returns>
         /// <remarks>Используется как заглушка, если не передан делегат для <see cref="CanExecute(object)"/>.</remarks>
-        public static bool AllTrue(object parameter) => true;
+        public static bool AlwaysTrue() => true;
 
-        /// <summary>Создаёт экземпляр команды.</summary>
+        /// <summary>Создаёт экземпляр команды для методов без параметра.</summary>
         /// <param name="executeHandler">Делегат метода исполняющего команду.</param>
-        /// <param name="canExecuteHandler">Делегат метода возвращающего состояние команды.</param>
+        /// <param name="canExecuteHandler">Делегат метода проверяющего состояние команды.</param>
         public RelayCommand(ExecuteCommandHandler executeHandler, CanExecuteCommandHandler canExecuteHandler)
+            : this((Type)null)
         {
-            execute = executeHandler ?? throw ExecuteHandlerNullException;
-            canExecute = canExecuteHandler ?? throw CanExecuteHandlerNullException;
+            execute= executeHandler ?? throw ExecuteHandlerNullException;
+            canExecute= canExecuteHandler ?? throw CanExecuteHandlerNullException;
         }
 
-        /// <summary>Создаёт экземпляр команды.</summary>
+        /// <summary>Создаёт экземпляр команды для метода без параметра.</summary>
         /// <param name="executeHandler">Делегат метода исполняющего команду.</param>
+        /// <remarks>Метод проверяющий состояние команды замещается методом <see cref="AlwaysTrue()"/>.</remarks>
         public RelayCommand(ExecuteCommandHandler executeHandler)
-              : this(executeHandler, AllTrue)
+            : this(executeHandler, AlwaysTrue)
         { }
 
         /// <summary>Создаёт экземпляр команды.</summary>
-        protected RelayCommand() { }
+        protected RelayCommand(Type parameterType)
+            => ParameterType = parameterType;
 
         /// <summary>Ошибка возникающая при передаче в конструтор <see cref="RelayCommand"/> параметра executeHandler=<see langword="null"/>.</summary>
         public static ArgumentNullException ExecuteHandlerNullException = new ArgumentNullException("executeHandler");
@@ -54,8 +62,11 @@ namespace WpfMvvm.Commands
         /// <summary>Ошибка возникающая при передаче в конструтор <see cref="RelayCommand"/> параметра canExecuteHandler=<see langword="null"/>.</summary>
         public static ArgumentNullException CanExecuteHandlerNullException = new ArgumentNullException("canExecuteHandler");
 
+        /// <summary>Возникает в экземпляре команды для методов без параметра,
+        /// если в метод <see cref="Execute(object)"/> был передан не <see langword="null"/>.</summary>
+        public static ArgumentException NotNullParameter { get; } = new ArgumentException("Должен быть null.", "parameter");
+
         /// <inheritdoc cref="IRelayCommand.ParameterType"/>
-        public virtual Type ParameterType => parameterType;
-        private static readonly Type parameterType = typeof(object);
+        public Type ParameterType { get; }
     }
 }

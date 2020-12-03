@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\WpfMvvm.Commands.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\WpfMvvm.Commands.xml</DocumentationFile>
+    <NoWarn>NU5048, NU5128</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>
@@ -57,12 +60,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\Delegates.cs" />
-    <Compile Include="Interfaces\ICommandAction.cs" />
-    <Compile Include="Interfaces\ICommandT.cs" />
     <Compile Include="Interfaces\ICommandRaise.cs" />
-    <Compile Include="RelayCommands\RelayCommandAction.cs" />
-    <Compile Include="RelayCommands\RelayCommandT.cs" />
-    <Compile Include="RelayCommands\RelayCommand.cs" />
+    <Compile Include="Interfaces\IRelayCommand.cs" />
+    <Compile Include="RelayCommands\RelayCommandNew.cs" />
+    <Compile Include="RelayCommands\RelayCommandTNew.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

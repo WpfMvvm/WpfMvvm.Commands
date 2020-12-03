@@ -1,20 +1,31 @@
-﻿namespace WpfMvvm.Commands
+﻿using System;
+using System.Windows.Input;
+
+namespace WpfMvvm.Commands
 {
     /// <summary>Производный от <see cref="RelayCommand"/> класс,
     /// реализующий интерфейс <see cref="ICommand{T}"/>.</summary>
     /// <typeparam name="T">Тип параметра методов команды.</typeparam>
-    public class RelayCommand<T> : RelayCommand, ICommand<T>
+    public class RelayCommand<T> : RelayCommand, IRelayCommand<T>, IRelayCommand, ICommand<T>, ICommandRaise, ICommand
     {
 
-        /// <inheritdoc cref="RelayCommand.CanExecute(object)"/>
+        /// <summary>Метод, который определяет, может ли данная команда выполняться в ее текущем состоянии.</summary>
+        /// <param name="parameter">Команда требует данных в типе приводимом по шаблону к типу <typeparamref name="T"/>.
+        /// Если значение null или оно не приводится к <typeparamref name="T"/>, всегда будет возвращаться <see langword="false"/>.</param>
+        /// <returns> Значение true, если эту команду можно выполнить; в противном случае — значение false.</returns>
+        /// <remarks>После приведения <paramref name="parameter"/> к <typeparamref name="T"/> вызывается метод <see cref="CanExecute(T)"/>.</remarks>
         public override bool CanExecute(object parameter)
             => parameter is T t && CanExecute(t);
 
-        /// <inheritdoc cref="RelayCommand.Execute(object)"/>
+        /// <summary>Метод, вызываемый при исполнении данной команды</summary>
+        /// <param name="parameter">Команда требует данных в типе явно приводимом к типу <typeparamref name="T"/>.
+        /// Если оно не приводится к <typeparamref name="T"/> возникнет исключение кастования.</param>
+        /// <returns> Значение true, если эту команду можно выполнить; в противном случае — значение false.</returns>
+        /// <remarks>После приведения <paramref name="parameter"/> к <typeparamref name="T"/> <c>(T)parameter</c>
+        /// вызывается метод <see cref="CanExecute(T)"/>.</remarks>
         public override void Execute(object parameter)
         {
-            if (parameter is T t)
-                Execute(t);
+            Execute((T)parameter);
         }
 
         /// <summary>Делегат метода исполняющего команду.</summary>
@@ -49,5 +60,9 @@
         public RelayCommand(ExecuteCommandHandler<T> executeHandler)
             : this(executeHandler, AllTrue)
         { }
+
+        /// <inheritdoc cref="IRelayCommand.ParameterType"/>
+        public override Type ParameterType => parameterType;
+        private static readonly Type parameterType = typeof(T);
     }
 }
