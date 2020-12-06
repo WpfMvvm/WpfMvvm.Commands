@@ -7,7 +7,7 @@ namespace WpfMvvm.Commands
     public class RelayCommand : IRelayCommand, ICommandRaise, ICommand
     {
         /// <inheritdoc cref="ICommand.CanExecuteChanged"/>
-        public virtual event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged;
 
         private readonly ExecuteCommandHandler execute;
         private readonly CanExecuteCommandHandler canExecute;

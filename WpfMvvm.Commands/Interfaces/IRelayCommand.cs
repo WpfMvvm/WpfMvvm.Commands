@@ -11,7 +11,7 @@ namespace WpfMvvm.Commands
     /// Еслл <see cref="ParameterType"/>=<see langword="null"/>, то значит методы не принимают параметра.<br/>
     /// Если параметр нельзя конвертировать в заданный тип, то реализация интерфейса может выкинуть исключение,
     /// но не обязательно. Это поведение определяется в самой реализации.</remarks>
-    interface IRelayCommand : ICommandRaise, ICommand
+    public interface IRelayCommand : ICommandRaise, ICommand
     {
         /// <summary>Тип парметра.</summary>
         Type ParameterType { get; }
