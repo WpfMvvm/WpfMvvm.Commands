@@ -10,8 +10,8 @@ namespace WpfMvvm.Commands
     {
 
         /// <summary>Метод, который определяет, может ли данная команда выполняться в ее текущем состоянии.</summary>
-        /// <param name="parameter">Команда требует данных в типе приводимом по шаблону к типу <typeparamref name="T"/>.<br/>
-        /// Если оно не приводится к <typeparamref name="T"/>, всегда будет возвращаться <see langword="false"/>.<br/>
+        /// <param name="parameter">Команда требует параметра в типе приводимом по шаблону к типу <typeparamref name="T"/>.<br/>
+        /// Если он не приводится - всегда будет возвращаться <see langword="false"/>.<br/>
         /// Если передан <see langword="null"/>, то проверяется тип <see cref="RelayCommand.ParameterType"/> на принадлежность к значимым типам.<br/>
         /// Если принадлежит - возвращается <see langword="false"/>; иначе - результат выполнения метода переданного по делегату с default параметром.</param>
         /// <returns> Значение <see langword="true"/>, если эту команду можно выполнить; в противном случае — значение <see langword="false"/>.</returns>
@@ -23,15 +23,31 @@ namespace WpfMvvm.Commands
 
         private readonly bool isNullableParameterType;
 
-        /// <summary>Метод, вызываемый при исполнении данной команды</summary>
-        /// <param name="parameter">Команда требует данных в типе явно приводимом к типу <typeparamref name="T"/>.
-        /// Если оно не приводится к <typeparamref name="T"/> возникнет исключение кастования.</param>
-        /// <returns> Значение true, если эту команду можно выполнить; в противном случае — значение false.</returns>
-        /// <remarks>После приведения <paramref name="parameter"/> к <typeparamref name="T"/> <c>(T)parameter</c>
-        /// вызывается исполнительный метод по полученному делегату.</remarks>
-        /// <exception cref="InvalidCastException">Если недопустимо явное приведение параметра к типу <typeparamref name="T"/>.</exception>
-        public override void Execute(object parameter)
-            => execute((T)parameter);
+        /// <summary>Метод, вызываемый при исполнении данной команды.</summary>
+        /// <param name="parameter">Значение должно быть в типе приводимом по шаблону к типу <typeparamref name="T"/>.
+        /// Если оно не приводится к <typeparamref name="T"/> будет исключение <see cref="RelayCommand.ParameterInvalidCastException"/>.<br/>
+        /// Если <see langword="null"/>, но тип <typeparamref name="T"/> не может принять <see langword="null"/> -
+        /// будет исключение <see cref="RelayCommand.ParameterTypeNotAcceptNullException"/>.</param>
+        /// <exception cref="RelayCommand.ParameterTypeNotAcceptNullException">Если <paramref name="parameter"/> = <see langword="null"/>, 
+        /// а тип <typeparamref name="T"/> не может принять <see langword="null"/>.</exception>
+         /// <exception cref="RelayCommand.ParameterInvalidCastException">Если недопустимо явное приведение параметра к типу <typeparamref name="T"/>.</exception>
+       public override void Execute(object parameter)
+        {
+            if (parameter == null)
+            {
+                if (!isNullableParameterType)
+                    throw ParameterTypeNotAcceptNullException;
+                execute(default);
+            }
+            else if (!(parameter is T t))
+            {
+                throw ParameterInvalidCastException;
+            }
+            else
+            {
+                execute(t);
+            }
+        }
 
         /// <summary>Делегат метода исполняющего команду.</summary>
         private readonly ExecuteCommandHandler<T> execute;
@@ -47,7 +63,7 @@ namespace WpfMvvm.Commands
 
         /// <summary>Создаёт экземпляр команды.</summary>
         /// <param name="executeHandler">Делегат метода исполняющего команду.</param>
-        /// <param name="canExecuteHandler">Делегат метода проверяющео состояние команды.</param>
+        /// <param name="canExecuteHandler">Делегат метода проверяющего состояние команды.</param>
         public RelayCommand(ExecuteCommandHandler<T> executeHandler, CanExecuteCommandHandler<T> canExecuteHandler)
             : base(typeof(T))
         {
