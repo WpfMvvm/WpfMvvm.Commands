@@ -3,66 +3,82 @@ using System.Windows.Input;
 
 namespace WpfMvvm.Commands
 {
-    /// <summary>Производный от <see cref="RelayCommand"/> класс,
-    /// реализующий интерфейс <see cref="ICommand{T}"/>.</summary>
+    /// <summary>Производный от <see cref="RelayCommand"/> класс
+    /// для методов с обобщённым параметром.</summary>
     /// <typeparam name="T">Тип параметра методов команды.</typeparam>
-    public class RelayCommand<T> : RelayCommand, IRelayCommand<T>, IRelayCommand, ICommand<T>, ICommandRaise, ICommand
+    public class RelayCommand<T> : RelayCommand, IRelayCommand, ICommandRaise, ICommand
     {
 
         /// <summary>Метод, который определяет, может ли данная команда выполняться в ее текущем состоянии.</summary>
-        /// <param name="parameter">Команда требует данных в типе приводимом по шаблону к типу <typeparamref name="T"/>.
-        /// Если значение null или оно не приводится к <typeparamref name="T"/>, всегда будет возвращаться <see langword="false"/>.</param>
-        /// <returns> Значение true, если эту команду можно выполнить; в противном случае — значение false.</returns>
-        /// <remarks>После приведения <paramref name="parameter"/> к <typeparamref name="T"/> вызывается метод <see cref="CanExecute(T)"/>.</remarks>
+        /// <param name="parameter">Команда требует параметра в типе приводимом по шаблону к типу <typeparamref name="T"/>.<br/>
+        /// Если он не приводится - всегда будет возвращаться <see langword="false"/>.<br/>
+        /// Если передан <see langword="null"/>, то проверяется тип <see cref="RelayCommand.ParameterType"/> на возможность принятия <see langword="null"/>.<br/>
+        /// Если не может - возвращается <see langword="false"/>; иначе - результат выполнения метода переданного по делегату с default параметром.</param>
+        /// <returns> Значение <see langword="true"/>, если эту команду можно выполнить; в противном случае — значение <see langword="false"/>.</returns>
+        /// <remarks>После приведения <paramref name="parameter"/> к <typeparamref name="T"/> вызывается метод из переданного делегата.</remarks>
         public override bool CanExecute(object parameter)
-            => parameter is T t && CanExecute(t);
+            => parameter == null
+                ? isNullableParameterType && canExecute(default)
+                : parameter is T t && canExecute(t);
 
-        /// <summary>Метод, вызываемый при исполнении данной команды</summary>
-        /// <param name="parameter">Команда требует данных в типе явно приводимом к типу <typeparamref name="T"/>.
-        /// Если оно не приводится к <typeparamref name="T"/> возникнет исключение кастования.</param>
-        /// <returns> Значение true, если эту команду можно выполнить; в противном случае — значение false.</returns>
-        /// <remarks>После приведения <paramref name="parameter"/> к <typeparamref name="T"/> <c>(T)parameter</c>
-        /// вызывается метод <see cref="CanExecute(T)"/>.</remarks>
-        public override void Execute(object parameter)
+        private readonly bool isNullableParameterType;
+
+        /// <summary>Метод, вызываемый при исполнении данной команды.</summary>
+        /// <param name="parameter">Значение должно быть в типе приводимом по шаблону к типу <typeparamref name="T"/>.
+        /// Если оно не приводится к <typeparamref name="T"/> будет исключение <see cref="RelayCommand.ParameterInvalidCastException"/>.<br/>
+        /// Если <see langword="null"/>, но тип <typeparamref name="T"/> не может принять <see langword="null"/> -
+        /// будет исключение <see cref="RelayCommand.ParameterTypeNotAcceptNullException"/>.</param>
+        /// <exception cref="RelayCommand.ParameterTypeNotAcceptNullException">Если <paramref name="parameter"/> = <see langword="null"/>, 
+        /// а тип <typeparamref name="T"/> не может принять <see langword="null"/>.</exception>
+         /// <exception cref="RelayCommand.ParameterInvalidCastException">Если недопустимо явное приведение параметра к типу <typeparamref name="T"/>.</exception>
+       public override void Execute(object parameter)
         {
-            Execute((T)parameter);
+            if (parameter == null)
+            {
+                if (!isNullableParameterType)
+                    throw ParameterTypeNotAcceptNullException;
+                execute(default);
+            }
+            else if (!(parameter is T t))
+            {
+                throw ParameterInvalidCastException;
+            }
+            else
+            {
+                execute(t);
+            }
         }
 
         /// <summary>Делегат метода исполняющего команду.</summary>
         private readonly ExecuteCommandHandler<T> execute;
 
-        /// <summary>Делегат метода возвращающего состояние команды.</summary>
+        /// <summary>Делегат метода проверяющего состояние команды.</summary>
         private readonly CanExecuteCommandHandler<T> canExecute;
-
-        /// <inheritdoc cref="ICommand{T}.CanExecute(T)"/>
-        public bool CanExecute(T parameter) => canExecute(parameter);
-
-        /// <inheritdoc cref="ICommand{T}.Execute(T)"/>
-        public void Execute(T parameter) => execute(parameter);
 
         /// <summary>Всегда возвращает <see langword="true"/>.</summary>
         /// <param name="parameter">Параметр команды. Не используется.</param>
         /// <returns>Всегда <see langword="true"/>.</returns>
-        /// <remarks>Используется как заглушка, если не передан делегат для <see cref="CanExecute(T)"/>.</remarks>
-        public static bool AllTrue(T parameter) => true;
+        /// <remarks>Используется как заглушка, если не передан делегат для метода проверяющего состояние команды.</remarks>
+        public static bool AlwaysTrue(T parameter) => true;
 
         /// <summary>Создаёт экземпляр команды.</summary>
         /// <param name="executeHandler">Делегат метода исполняющего команду.</param>
-        /// <param name="canExecuteHandler">Делегат метода возвращающего состояние команды.</param>
+        /// <param name="canExecuteHandler">Делегат метода проверяющего состояние команды.</param>
         public RelayCommand(ExecuteCommandHandler<T> executeHandler, CanExecuteCommandHandler<T> canExecuteHandler)
+            : base(typeof(T))
         {
             execute = executeHandler ?? throw ExecuteHandlerNullException;
             canExecute = canExecuteHandler ?? throw CanExecuteHandlerNullException;
+
+            isNullableParameterType = default(T) == null;
         }
 
         /// <summary>Создаёт экземпляр команды.</summary>
         /// <param name="executeHandler">Делегат метода исполняющего команду.</param>
+        /// <remarks>Метод проверяющий состояние команды замещается методом <see cref="AlwaysTrue(T)"/>.</remarks>
         public RelayCommand(ExecuteCommandHandler<T> executeHandler)
-            : this(executeHandler, AllTrue)
+            : this(executeHandler, AlwaysTrue)
         { }
 
-        /// <inheritdoc cref="IRelayCommand.ParameterType"/>
-        public override Type ParameterType => parameterType;
-        private static readonly Type parameterType = typeof(T);
     }
 }

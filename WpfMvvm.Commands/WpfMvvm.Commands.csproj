@@ -63,8 +63,8 @@
     <Compile Include="Interfaces\Delegates.cs" />
     <Compile Include="Interfaces\ICommandRaise.cs" />
     <Compile Include="Interfaces\IRelayCommand.cs" />
-    <Compile Include="RelayCommands\RelayCommandNew.cs" />
-    <Compile Include="RelayCommands\RelayCommandTNew.cs" />
+    <Compile Include="RelayCommands\RelayCommand.cs" />
+    <Compile Include="RelayCommands\RelayCommandT.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
